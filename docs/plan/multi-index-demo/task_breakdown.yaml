@@ -1,0 +1,625 @@
+plan_id: multi-index-demo
+objective: Create a Python notebook demo that demonstrates agentic retrieval across two separate Azure AI Search indexes using one knowledge base with multiple knowledge sources
+created_at: 2026-03-27T00:00:00Z
+created_by: requirements-planner
+status: completed
+completed_at: 2026-03-27T00:00:00Z
+research_confidence: high
+
+tldr: |
+  Build a comprehensive Python notebook that demonstrates multi-index agentic retrieval by:
+  1. Creating two Azure AI Search indexes with identical schemas
+  2. Splitting NASA Earth at Night dataset in half across both indexes
+  3. Creating two knowledge sources (one per index)
+  4. Creating one knowledge base that references both knowledge sources
+  5. Executing queries that aggregate results across both indexes
+  6. Displaying results with clear source index attribution in a side-by-side format
+
+requirements_summary: |
+  The demo notebook must showcase how Azure AI Search agentic retrieval can query multiple 
+  search indexes simultaneously through a single knowledge base. The notebook will use the 
+  existing NASA Earth at Night dataset, split evenly between two indexes (index-earth-1 and 
+  index-earth-2). Both indexes will have identical schemas to focus on demonstrating query 
+  and aggregation functionality rather than schema complexity.
+  
+  The knowledge base will be configured with two knowledge sources, each pointing to one of 
+  the search indexes. When a user submits a query, the agentic retrieval pipeline will 
+  decompose the query, run subqueries against both indexes, and aggregate results.
+  
+  The notebook will include high-level explanations for each step, making it accessible to 
+  developers who want to understand multi-index retrieval patterns. Results will be displayed 
+  with clear metadata showing which index each result came from, and a side-by-side comparison 
+  view to help visualize the multi-source nature of the retrieval.
+
+open_questions: []
+
+risk_assessment:
+  overall_risk_level: low
+  critical_risks:
+    - scenario: Data split logic may not evenly distribute semantic content between indexes
+      likelihood: low
+      impact: medium
+      mitigation: Use simple array slicing (first half/second half) to ensure equal distribution of documents
+    - scenario: Knowledge base API may not support multiple knowledge sources properly
+      likelihood: low
+      impact: high
+      mitigation: Based on existing notebook code, the KnowledgeBase model accepts a list of KnowledgeSourceReference objects, indicating multi-source support is built-in
+  assumptions:
+    - Azure AI Search SDK supports multiple knowledge sources in a single knowledge base
+    - NASA dataset has sufficient documents to make a meaningful split (at least 20+ documents)
+    - The agentic retrieval pipeline automatically aggregates results from multiple sources
+    - Results metadata includes source index information
+  constraints:
+    - Must use existing NASA Earth at Night dataset
+    - Both indexes must have identical schema
+    - Python notebook format only
+    - High-level explanations required for all steps
+
+implementation_specification:
+  code_structure: |
+    Jupyter notebook with sequentially ordered cells:
+    1. Introduction and overview section
+    2. Environment setup and configuration
+    3. Index creation for both indexes
+    4. Data loading and splitting
+    5. Data upload to both indexes
+    6. Knowledge source creation (two sources)
+    7. Knowledge base creation (single KB with two sources)
+    8. Query execution and result retrieval
+    9. Result processing and side-by-side display
+    10. Cleanup section
+  
+  affected_areas:
+    - docs/ directory (new notebook file)
+    - Environment configuration (.env file documentation)
+  
+  component_details:
+    - component: Index Creation Module
+      responsibility: Create two Azure AI Search indexes with identical schemas including vector search and semantic search configurations
+      interfaces:
+        - SearchIndexClient.create_or_update_index()
+        - Index definitions with fields, vector_search, semantic_search
+    
+    - component: Data Split Module
+      responsibility: Load NASA dataset from GitHub, split into two equal halves
+      interfaces:
+        - requests.get() for data retrieval
+        - Array slicing for splitting documents
+    
+    - component: Knowledge Source Configuration
+      responsibility: Create two knowledge sources, each targeting one search index
+      interfaces:
+        - SearchIndexClient.create_or_update_knowledge_source()
+        - SearchIndexKnowledgeSource with search_index_parameters
+    
+    - component: Knowledge Base Configuration
+      responsibility: Create one knowledge base referencing both knowledge sources
+      interfaces:
+        - SearchIndexClient.create_or_update_knowledge_base()
+        - KnowledgeBase with multiple KnowledgeSourceReference objects
+    
+    - component: Multi-Index Query Module
+      responsibility: Execute queries against the knowledge base with both sources enabled
+      interfaces:
+        - KnowledgeBaseRetrievalClient.retrieve()
+        - KnowledgeBaseRetrievalRequest with multiple knowledge_source_params
+    
+    - component: Result Display Module
+      responsibility: Parse results, extract source metadata, display side-by-side comparison
+      interfaces:
+        - result.response, result.references
+        - Pandas DataFrame or formatted output for side-by-side view
+  
+  dependencies:
+    - component: Environment Setup
+      relationship: Provides credentials and endpoints to all Azure service calls
+    
+    - component: Index Creation
+      relationship: Must complete before data upload and knowledge source creation
+    
+    - component: Data Split
+      relationship: Must complete before data upload
+    
+    - component: Knowledge Source Creation
+      relationship: Requires indexes to exist, provides sources to knowledge base
+    
+    - component: Knowledge Base Creation
+      relationship: Requires both knowledge sources to exist, enables query execution
+  
+  integration_points:
+    - Azure AI Search REST API via Python SDK
+    - Azure OpenAI for embeddings and chat completions
+    - GitHub raw content API for NASA dataset retrieval
+    - DefaultAzureCredential for authentication
+
+task_relationships:
+  - task: create-notebook-structure
+    depends_on: []
+    provides_to:
+      - implement-environment-setup
+    interface: Notebook file with cell structure
+    format: .ipynb file with markdown and empty code cells
+
+  - task: implement-environment-setup
+    depends_on:
+      - create-notebook-structure
+    provides_to:
+      - implement-dual-index-creation
+    interface: Environment variables and Azure client objects
+    format: Python variables (search_endpoint, credential, index names)
+
+  - task: implement-dual-index-creation
+    depends_on:
+      - implement-environment-setup
+    provides_to:
+      - implement-data-split-upload
+    interface: Two created search indexes
+    format: Azure AI Search index resources
+
+  - task: implement-data-split-upload
+    depends_on:
+      - implement-dual-index-creation
+    provides_to:
+      - implement-knowledge-sources
+    interface: Populated search indexes with data
+    format: Indexed documents in both indexes
+
+  - task: implement-knowledge-sources
+    depends_on:
+      - implement-data-split-upload
+    provides_to:
+      - implement-knowledge-base
+    interface: Two knowledge source configurations
+    format: SearchIndexKnowledgeSource objects
+
+  - task: implement-knowledge-base
+    depends_on:
+      - implement-knowledge-sources
+    provides_to:
+      - implement-multi-index-query
+    interface: Single knowledge base with two sources
+    format: KnowledgeBase object with multiple KnowledgeSourceReference
+
+  - task: implement-multi-index-query
+    depends_on:
+      - implement-knowledge-base
+    provides_to:
+      - implement-result-display
+    interface: Query results from both indexes
+    format: KnowledgeBaseRetrievalResult object
+
+  - task: implement-result-display
+    depends_on:
+      - implement-multi-index-query
+    provides_to: []
+    interface: Formatted output with source attribution
+    format: Visual output showing results side-by-side
+
+tasks:
+  - id: create-notebook-structure
+    title: Create notebook structure and introduction
+    description: |
+      Create a new Jupyter notebook file with comprehensive introduction and overview sections.
+      Include markdown cells explaining:
+      - What multi-index agentic retrieval is
+      - The demo architecture (1 knowledge base, 2 knowledge sources, 2 indexes)
+      - The NASA dataset split strategy
+      - Expected outcomes and learning objectives
+      
+      Set up the overall cell structure with clear sections for each step.
+    execution_order: 1
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on: []
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for notebook structure and style
+    estimated_effort: small
+    estimated_files: 1
+    estimated_lines: 50
+    focus_area: documentation
+    verification:
+      - Notebook file created at docs/multi-index-agentic-retrieval-demo.ipynb
+      - Introduction markdown cells explain multi-index concept clearly
+      - Cell structure includes all major sections
+    acceptance_criteria:
+      - Notebook follows same style as quickstart-agentic-retrieval.ipynb
+      - Introduction is high-level and accessible
+      - Clear section headers for all major steps
+    failure_modes:
+      - scenario: Introduction is too technical or unclear
+        likelihood: low
+        impact: medium
+        mitigation: Use simple language and include diagrams/bullet points to clarify architecture
+    tech_stack:
+      - Jupyter Notebook
+      - Markdown
+    test_coverage: null
+
+  - id: implement-environment-setup
+    title: Implement environment setup for dual indexes
+    description: |
+      Create cells for loading environment variables and setting up Azure clients.
+      Extend the original setup to include:
+      - Two index names (index-earth-1, index-earth-2)
+      - Two knowledge source names (earth-ks-1, earth-ks-2)
+      - One knowledge base name (earth-multi-kb)
+      
+      Include explanatory markdown describing each configuration parameter.
+    execution_order: 2
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - create-notebook-structure
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for environment setup pattern
+    estimated_effort: small
+    estimated_files: 1
+    estimated_lines: 40
+    focus_area: configuration
+    verification:
+      - Environment variables loaded correctly
+      - Two distinct index names defined
+      - Two distinct knowledge source names defined
+      - Single knowledge base name defined
+    acceptance_criteria:
+      - All required Azure connection parameters loaded
+      - Variable names are clear and descriptive
+      - Markdown explains the dual-index configuration
+    failure_modes:
+      - scenario: Missing required environment variables
+        likelihood: low
+        impact: medium
+        mitigation: Include clear documentation about required .env file contents with example values
+    tech_stack:
+      - Python
+      - python-dotenv
+      - azure-identity
+    test_coverage: null
+
+  - id: implement-dual-index-creation
+    title: Create two search indexes with identical schemas
+    description: |
+      Create cells that define and create two Azure AI Search indexes with identical schemas.
+      Both indexes should have:
+      - Same field structure (id, page_chunk, page_embedding_text_3_large, page_number)
+      - Same vector search configuration
+      - Same semantic search configuration
+      
+      Use a loop or function to avoid code duplication. Include markdown explaining why 
+      identical schemas simplify the demo and focus attention on multi-index querying.
+    execution_order: 3
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-environment-setup
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for index schema definition
+    estimated_effort: medium
+    estimated_files: 1
+    estimated_lines: 80
+    focus_area: index_creation
+    verification:
+      - Two indexes created successfully
+      - Both indexes have identical schemas
+      - Vector search and semantic search configured correctly
+      - Confirmation messages displayed
+    acceptance_criteria:
+      - Code creates both indexes without duplication
+      - Schemas match exactly
+      - Semantic configuration includes default_configuration_name
+      - Clear markdown explains the identical schema choice
+    failure_modes:
+      - scenario: Schema mismatch between indexes
+        likelihood: medium
+        impact: high
+        mitigation: Define schema once as a function or template, then create both indexes using the same definition
+    tech_stack:
+      - Python
+      - azure-search-documents
+      - Azure AI Search SDK
+    test_coverage: null
+
+  - id: implement-data-split-upload
+    title: Split NASA data and upload to both indexes
+    description: |
+      Create cells that:
+      1. Fetch the NASA Earth at Night dataset from GitHub
+      2. Split the documents array in half (first 50% to index-earth-1, second 50% to index-earth-2)
+      3. Upload each half to its respective index
+      4. Display summary statistics (number of documents per index)
+      
+      Include markdown explaining the split strategy and why even distribution is important.
+      Show document counts to verify the split worked correctly.
+    execution_order: 4
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-dual-index-creation
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for data fetching and upload pattern
+    estimated_effort: medium
+    estimated_files: 1
+    estimated_lines: 60
+    focus_area: data_loading
+    verification:
+      - NASA dataset fetched successfully
+      - Documents split into two equal halves
+      - First half uploaded to index-earth-1
+      - Second half uploaded to index-earth-2
+      - Summary statistics displayed
+    acceptance_criteria:
+      - Split uses simple array slicing (e.g., documents[:len(documents)//2])
+      - Upload confirmation for both indexes
+      - Document counts displayed and are approximately equal
+      - Markdown explains split strategy clearly
+    failure_modes:
+      - scenario: Uneven split causes one index to be significantly larger
+        likelihood: low
+        impact: low
+        mitigation: Use len(documents)//2 for precise middle split
+      - scenario: Network error fetching NASA data
+        likelihood: low
+        impact: medium
+        mitigation: Include error handling and clear error messages
+    tech_stack:
+      - Python
+      - requests
+      - azure-search-documents
+    test_coverage: null
+
+  - id: implement-knowledge-sources
+    title: Create two knowledge sources for the indexes
+    description: |
+      Create cells that define and create two knowledge sources:
+      - earth-ks-1 pointing to index-earth-1
+      - earth-ks-2 pointing to index-earth-2
+      
+      Both should use the same SearchIndexKnowledgeSourceParameters configuration.
+      Include markdown explaining that each knowledge source wraps one search index
+      and enables the knowledge base to query it.
+    execution_order: 5
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-data-split-upload
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for knowledge source creation
+    estimated_effort: small
+    estimated_files: 1
+    estimated_lines: 50
+    focus_area: knowledge_source_setup
+    verification:
+      - Two knowledge sources created successfully
+      - Each points to the correct index
+      - Confirmation messages displayed
+    acceptance_criteria:
+      - Both knowledge sources have clear, descriptive names
+      - Parameters match the pattern from the original notebook
+      - Markdown explains the one-to-one mapping (source to index)
+    failure_modes:
+      - scenario: Knowledge source misconfigured to point to wrong index
+        likelihood: low
+        impact: high
+        mitigation: Use clear variable names and include verification/logging of which source points to which index
+    tech_stack:
+      - Python
+      - azure-search-documents
+    test_coverage: null
+
+  - id: implement-knowledge-base
+    title: Create knowledge base with multiple sources
+    description: |
+      Create cells that define and create a single knowledge base that references both 
+      knowledge sources. The KnowledgeBase object should include:
+      - Azure OpenAI model configuration
+      - List of two KnowledgeSourceReference objects (one for each source)
+      - ANSWER_SYNTHESIS output mode
+      - Answer instructions
+      
+      Include comprehensive markdown explaining:
+      - How one knowledge base can aggregate multiple sources
+      - The agentic retrieval pipeline behavior with multiple sources
+      - What to expect when querying (subqueries to both indexes)
+    execution_order: 6
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-knowledge-sources
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for knowledge base creation
+    estimated_effort: small
+    estimated_files: 1
+    estimated_lines: 60
+    focus_area: knowledge_base_setup
+    verification:
+      - Knowledge base created successfully
+      - References both knowledge sources
+      - Configured for ANSWER_SYNTHESIS mode
+      - Confirmation message displayed
+    acceptance_criteria:
+      - Knowledge base includes array with two KnowledgeSourceReference objects
+      - Output mode is ANSWER_SYNTHESIS
+      - Markdown clearly explains multi-source aggregation concept
+    failure_modes:
+      - scenario: Knowledge base only queries one source despite having two configured
+        likelihood: low
+        impact: high
+        mitigation: Use always_query_source=True in retrieval parameters and verify both sources in activity logs
+    tech_stack:
+      - Python
+      - azure-search-documents
+    test_coverage: null
+
+  - id: implement-multi-index-query
+    title: Execute query across both indexes
+    description: |
+      Create cells that:
+      1. Define a sample query that should return results from both indexes
+      2. Set up messages with system instructions
+      3. Create KnowledgeBaseRetrievalRequest with knowledge_source_params for BOTH sources
+      4. Execute the retrieval request
+      5. Extract response, activity, and references
+      
+      Include markdown explaining:
+      - How the query is sent to the knowledge base (not to individual sources)
+      - How the knowledge base orchestrates retrieval across both indexes
+      - What the activity log reveals about multi-index querying
+      
+      Use a query like: "What patterns of light are visible in different regions of Earth at night?"
+      to encourage results from across the full dataset.
+    execution_order: 7
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-knowledge-base
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for query execution pattern
+    estimated_effort: medium
+    estimated_files: 1
+    estimated_lines: 80
+    focus_area: query_execution
+    verification:
+      - Query executes successfully
+      - Results retrieved from knowledge base
+      - Response, activity, and references extracted
+      - Activity log shows queries to both indexes
+    acceptance_criteria:
+      - KnowledgeBaseRetrievalRequest includes knowledge_source_params for both sources
+      - Both sources have include_references=True and include_reference_source_data=True
+      - Query is broad enough to potentially match content from both indexes
+      - Markdown explains the multi-index orchestration clearly
+    failure_modes:
+      - scenario: Query only returns results from one index
+        likelihood: medium
+        impact: medium
+        mitigation: Use always_query_source=True for both sources to ensure both are queried regardless of query planning
+    tech_stack:
+      - Python
+      - azure-search-documents
+    test_coverage: null
+
+  - id: implement-result-display
+    title: Display results with source attribution
+    description: |
+      Create cells that:
+      1. Parse the references to extract source index information
+      2. Group results by source index
+      3. Display results in a side-by-side format showing:
+         - Which index each result came from
+         - The content/chunk from each result
+         - Relevance scores or metadata
+      4. Display the synthesized answer at the top
+      5. Show activity log excerpt highlighting multi-index queries
+      
+      Use pandas DataFrame or formatted print statements to create a clear side-by-side view.
+      Include markdown explaining how to identify which results came from which index.
+    execution_order: 8
+    agent: gem-implementer
+    priority: high
+    status: pending
+    depends_on:
+      - implement-multi-index-query
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for result processing pattern
+    estimated_effort: medium
+    estimated_files: 1
+    estimated_lines: 100
+    focus_area: result_visualization
+    verification:
+      - Results parsed correctly
+      - Source index identified for each result
+      - Side-by-side display shows clear attribution
+      - Synthesized answer displayed
+    acceptance_criteria:
+      - Clear visual distinction between results from index-earth-1 vs index-earth-2
+      - Side-by-side format is easy to read
+      - Source attribution is unambiguous
+      - Markdown explains how to interpret the display
+    failure_modes:
+      - scenario: Source index information not available in references
+        likelihood: medium
+        impact: high
+        mitigation: Inspect reference structure carefully; source_data field should contain the index information; if not, use activity log to map queries to sources
+    tech_stack:
+      - Python
+      - pandas (optional)
+      - JSON processing
+    test_coverage: null
+
+  - id: implement-cleanup-section
+    title: Add cleanup section for resources
+    description: |
+      Create cells for cleaning up Azure resources:
+      1. Delete the knowledge base
+      2. Delete both knowledge sources
+      3. Delete both search indexes
+      
+      Include markdown explaining the importance of cleanup and cost management.
+      Follow the pattern from the original notebook but expanded for dual indexes.
+    execution_order: 9
+    agent: gem-implementer
+    priority: medium
+    status: pending
+    depends_on:
+      - implement-result-display
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for cleanup pattern
+    estimated_effort: small
+    estimated_files: 1
+    estimated_lines: 40
+    focus_area: resource_cleanup
+    verification:
+      - Cleanup cells include all resources (1 KB, 2 KS, 2 indexes)
+      - Confirmation messages for each deletion
+      - Markdown explains cleanup importance
+    acceptance_criteria:
+      - All created resources can be deleted
+      - Cleanup order is correct (KB first, then KS, then indexes)
+      - Clear explanatory markdown included
+    failure_modes: []
+    tech_stack:
+      - Python
+      - azure-search-documents
+    test_coverage: null
+
+  - id: add-requirements-documentation
+    title: Create requirements.txt and .env.sample
+    description: |
+      Create supporting files for the demo:
+      1. requirements.txt with all necessary Python packages
+      2. .env.sample showing the required environment variables
+      
+      Include comments explaining each dependency and environment variable.
+    execution_order: 10
+    agent: gem-documentation-writer
+    priority: low
+    status: pending
+    depends_on:
+      - implement-cleanup-section
+    context_files:
+      docs/quickstart-agentic-retrieval.ipynb: Reference for required packages
+    estimated_effort: small
+    estimated_files: 2
+    estimated_lines: 30
+    focus_area: documentation
+    verification:
+      - requirements.txt created with all packages
+      - .env.sample created with all variables
+      - Both files include helpful comments
+    acceptance_criteria:
+      - requirements.txt includes azure-search-documents, azure-identity, python-dotenv, requests
+      - .env.sample shows all required variables with example values
+      - Clear comments explain each entry
+    failure_modes: []
+    audience: developers
+    task_type: documentation
+    coverage_matrix:
+      - Python package dependencies
+      - Environment configuration

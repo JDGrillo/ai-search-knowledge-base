@@ -1,0 +1,22 @@
+# Python package dependencies for Multi-Index Agentic Retrieval Demo
+# Install with: pip install -r requirements.txt
+
+# Azure AI Search SDK - provides search index management and knowledge base capabilities
+# Version 11.7.0b2+ required for KnowledgeBase, KnowledgeSource, and agentic retrieval APIs
+azure-search-documents>=11.7.0b2
+
+# Azure Identity - provides authentication with Azure services using DefaultAzureCredential
+azure-identity
+
+# Python-dotenv - loads environment variables from .env file
+python-dotenv
+
+# Requests - HTTP library for fetching NASA dataset from GitHub
+requests
+
+# Optional: Jupyter for running the notebook
+# jupyter
+# notebook
+
+# Optional: Pandas for data analysis (not required for basic demo)
+# pandas

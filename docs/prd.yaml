@@ -1,0 +1,145 @@
+# Product Requirements Document - Multi-Index Agentic Retrieval Demo
+# Standalone, concise, LLM-optimized PRD for the demo notebook project
+
+prd_id: multi-index-demo-prd
+version: 1.0.0
+status: draft
+
+features: # What we're building - high-level only
+  - name: Dual Search Index Infrastructure
+    overview: Create two Azure AI Search indexes with identical schemas to demonstrate multi-index querying capabilities
+    status: planned
+
+  - name: Data Distribution System
+    overview: Split NASA Earth at Night dataset evenly across two indexes to simulate distributed knowledge sources
+    status: planned
+
+  - name: Multi-Source Knowledge Base
+    overview: Configure one knowledge base with two knowledge sources, each pointing to a separate search index
+    status: planned
+
+  - name: Aggregated Query Execution
+    overview: Execute queries that retrieve and aggregate results across both search indexes simultaneously
+    status: planned
+
+  - name: Source-Attributed Result Display
+    overview: Display query results with clear metadata showing which index each result originated from, presented in side-by-side format
+    status: planned
+
+  - name: Resource Management
+    overview: Provide cleanup functionality to delete all created Azure resources (indexes, knowledge sources, knowledge base)
+    status: planned
+
+state_machines: # Critical business states only
+  - name: Demo Setup Flow
+    states:
+      - not_started
+      - environment_configured
+      - indexes_created
+      - data_loaded
+      - knowledge_sources_created
+      - knowledge_base_created
+      - ready_to_query
+    transitions:
+      - from: not_started
+        to: environment_configured
+        trigger: Environment variables loaded and Azure clients initialized
+
+      - from: environment_configured
+        to: indexes_created
+        trigger: Both search indexes created with identical schemas
+
+      - from: indexes_created
+        to: data_loaded
+        trigger: NASA dataset split and uploaded to both indexes
+
+      - from: data_loaded
+        to: knowledge_sources_created
+        trigger: Two knowledge sources created, each targeting one index
+
+      - from: knowledge_sources_created
+        to: knowledge_base_created
+        trigger: Single knowledge base created referencing both sources
+
+      - from: knowledge_base_created
+        to: ready_to_query
+        trigger: Knowledge base validated and ready for queries
+
+  - name: Query Execution Flow
+    states:
+      - idle
+      - query_submitted
+      - retrieving_from_sources
+      - results_aggregated
+      - results_displayed
+    transitions:
+      - from: idle
+        to: query_submitted
+        trigger: User submits query to knowledge base
+
+      - from: query_submitted
+        to: retrieving_from_sources
+        trigger: Knowledge base decomposes query and submits to both sources
+
+      - from: retrieving_from_sources
+        to: results_aggregated
+        trigger: Results retrieved from both indexes and aggregated
+
+      - from: results_aggregated
+        to: results_displayed
+        trigger: Results parsed, attributed, and displayed with source metadata
+
+      - from: results_displayed
+        to: idle
+        trigger: User ready for next query or cleanup
+
+errors: # Only public-facing errors
+  - code: ERR_ENV_001
+    message: Required environment variables missing or invalid
+
+  - code: ERR_INDEX_001
+    message: Failed to create search index - check schema configuration and Azure credentials
+
+  - code: ERR_DATA_001
+    message: Failed to fetch or upload NASA dataset - verify network connectivity and index status
+
+  - code: ERR_KS_001
+    message: Failed to create knowledge source - verify target index exists
+
+  - code: ERR_KB_001
+    message: Failed to create knowledge base - verify knowledge sources exist and are properly configured
+
+  - code: ERR_QUERY_001
+    message: Query execution failed - check knowledge base status and query parameters
+
+  - code: ERR_DISPLAY_001
+    message: Failed to parse or display results - verify result structure and source metadata
+
+decisions: # Architecture decisions only
+  - decision: Use identical schemas for both search indexes
+    rationale: Simplifies the demo by focusing on multi-index query aggregation rather than schema complexity; allows clear demonstration of cross-index retrieval without schema translation concerns
+
+  - decision: Split NASA dataset evenly (50/50) between indexes
+    rationale: Ensures balanced data distribution for fair comparison; uses simple array slicing for predictable and repeatable splits; provides sufficient data in each index for meaningful query results
+
+  - decision: Use one knowledge base with two knowledge sources (not two separate knowledge bases)
+    rationale: Demonstrates the primary multi-source pattern where a single knowledge base orchestrates retrieval across multiple indexes; aligns with agentic retrieval best practices for unified query planning
+
+  - decision: Configure both knowledge sources with always_query_source=True
+    rationale: Guarantees that queries hit both indexes regardless of query planner decisions; ensures consistent demonstration of multi-index retrieval; prevents scenarios where only one source is queried
+
+  - decision: Display results in side-by-side format with source attribution
+    rationale: Provides clear visual demonstration of multi-index retrieval; makes source identification immediate and obvious; supports learning objective of understanding which results came from which index
+
+  - decision: Use ANSWER_SYNTHESIS output mode rather than EXTRACTIVE_DATA
+    rationale: Demonstrates the full agentic retrieval pipeline with LLM-generated answers; provides more compelling demo with natural language synthesis; shows citation-backed responses across multiple sources
+
+  - decision: Target high-level explanations for accessibility
+    rationale: Makes demo accessible to developers new to agentic retrieval; provides educational value beyond code; supports adoption by explaining concepts and architecture decisions
+
+  - decision: Include comprehensive cleanup section
+    rationale: Demonstrates proper resource management; prevents cost accumulation from abandoned resources; follows Azure best practices for demo and development scenarios
+
+changes: # Requirements changes only (none yet for initial version)
+  - version: 1.0.0
+    change: Initial PRD created based on approved task breakdown
