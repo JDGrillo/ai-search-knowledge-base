@@ -13,21 +13,24 @@ This Python notebook demonstrates:
 
 ## Architecture
 
-```
-┌─────────────────────┐
-│  Knowledge Base     │ ← Single KB orchestrates retrieval
-│  (earth-multi-kb)   │
-└──────────┬──────────┘
-           │
-     ┌─────┴─────┐
-     │           │
-┌────▼────┐ ┌───▼─────┐
-│   KS-1  │ │   KS-2  │ ← Two knowledge sources
-└────┬────┘ └───┬─────┘
-     │          │
-┌────▼────┐ ┌──▼──────┐
-│ Index 1 │ │ Index 2 │ ← Two search indexes with identical schemas
-└─────────┘ └─────────┘
+```mermaid
+graph TB
+    KB[Knowledge Base<br/>earth-multi-kb]
+    KS1[Knowledge Source 1<br/>KS-1]
+    KS2[Knowledge Source 2<br/>KS-2]
+    IDX1[Search Index 1<br/>Identical Schema]
+    IDX2[Search Index 2<br/>Identical Schema]
+    
+    KB -->|orchestrates<br/>retrieval| KS1
+    KB -->|orchestrates<br/>retrieval| KS2
+    KS1 -->|queries| IDX1
+    KS2 -->|queries| IDX2
+    
+    style KB fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    style KS1 fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    style KS2 fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    style IDX1 fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
+    style IDX2 fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
 ```
 
 ## Prerequisites
